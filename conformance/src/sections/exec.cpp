@@ -128,6 +128,48 @@ void run() {
 
     kal_exec_free(p, kReturns42Size);
 
+    // THE PARTIAL FORM (0.15), IN THE SHAPE A LOADER USES IT. Three quanta: the
+    // middle one holds instructions and is published, and the two around it
+    // stay writable --- a loaded object's data lies on both sides of its code,
+    // at distances its code relies on.
+    const kal_uintptr g = kal_exec_granularity();
+    observe(kind::abi, g != 0 && (g & (g - 1)) == 0,
+            "the granularity parts are published in is a power of two");
+    if (g != 0) {
+        void* r = kal_exec_alloc(3 * g);
+        observe(kind::behaviour, r != nullptr, "a region of three quanta is reserved");
+        if (r != nullptr) {
+            auto* bytes = static_cast<unsigned char*>(r);
+            for (unsigned long i = 0; i < kReturns42Size; ++i) bytes[g + i] = kReturns42[i];
+            observe(kind::behaviour, kal_exec_publish_part(r, 1, g) == kal_err_invalid,
+                    "a part that does not begin at a multiple of the granularity is refused");
+            observe(kind::behaviour, kal_exec_publish_part(r, g, 0) == kal_err_invalid,
+                    "a part of no bytes is refused");
+            const int part = kal_exec_publish_part(r, g, g);
+            observe(kind::behaviour, part == kal_ok, "part of a region is published");
+            if (part == kal_ok) {
+#if defined(__GNUC__) || defined(__clang__)
+                __builtin___clear_cache(reinterpret_cast<char*>(bytes + g),
+                                        reinterpret_cast<char*>(bytes + g + kReturns42Size));
+#endif
+                bytes[0] = 7;
+                bytes[3 * g - 1] = 9;
+                observe(kind::behaviour, bytes[0] == 7 && bytes[3 * g - 1] == 9,
+                        "the parts not published stay writable");
+                fn h = nullptr;
+                {
+                    unsigned char* at = bytes + g;
+                    auto* d = reinterpret_cast<unsigned char*>(&h);
+                    const auto* s = reinterpret_cast<const unsigned char*>(&at);
+                    for (unsigned long i = 0; i < sizeof h; ++i) d[i] = s[i];
+                }
+                observe(kind::behaviour, h() == 42,
+                        "instructions in a published part are executed");
+            }
+            kal_exec_free(r, 3 * g);
+        }
+    }
+
     // The property, not the operation. A caller that must change published
     // bytes acts differently depending on it, so it is read rather than assumed.
     if (kal::exec::has(kal::exec::republish)) {

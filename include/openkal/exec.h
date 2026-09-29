@@ -42,15 +42,50 @@ void* kal_exec_alloc(kal_uintptr size);
 /* Makes a region obtained from kal_exec_alloc executable and no longer
  * writable. Returns kal_ok, or an error if the environment refuses.
  *
- * The whole of the region is published; there is no partial form. An
- * implementation that had to publish in parts would be reporting its page
- * granularity through the shape of the interface, and a caller cannot act upon
- * that. */
+ * The whole of the region is published. An implementation that had to publish
+ * in parts would be reporting its page granularity through the shape of the
+ * interface, and a caller that generates code cannot act upon that. The caller
+ * that can --- a loader --- has kal_exec_publish_part, below. */
 int kal_exec_publish(void* p, kal_uintptr size);
 
 /* Releases a region obtained from kal_exec_alloc, published or not. The size is
  * the one passed to the reservation. */
 void kal_exec_free(void* p, kal_uintptr size);
+
+/* THE PARTIAL FORM, ADDED IN 0.15, FOR THE ONE CALLER THAT CAN ACT UPON A
+ * GRANULARITY.
+ *
+ * kal_exec_publish takes the whole region because a program that generates
+ * code has no use for the environment's page size. A loader has, and cannot
+ * work without a partial form: the object it loads was linked with its
+ * instructions and its data at fixed distances from each other, so both lie in
+ * one region, and the instructions must become executable while the data stays
+ * writable. Two regions would not do --- their distance is the environment's
+ * choice, and the object's code reaches its data by that distance. The object
+ * states the alignment of each of its parts, so the loader compares it with
+ * the granularity below before it reserves anything, and refuses an object
+ * whose parts are aligned more finely than the environment protects, with a
+ * reason, rather than publishing too much or too little of it. */
+
+/* The quantum in which part of a region is published: an offset and a size that
+ * are multiples of it are accepted by kal_exec_publish_part in every
+ * environment. It is the granularity at which the environment protects memory,
+ * which can be finer than the one kal_memory_granularity reports --- that one
+ * is also the granularity of allocation, and on one system the two differ. */
+kal_uintptr kal_exec_granularity(void);
+
+/* Publishes part of a region obtained from kal_exec_alloc: the size bytes from
+ * offset become executable and no longer writable, and the rest of the region
+ * is left as it was. Returns kal_ok; kal_err_invalid, with nothing changed, if
+ * the region is null, size is zero, or offset or size is not a multiple of
+ * kal_exec_granularity(); or an error if the environment refuses. The part
+ * shall lie within the region.
+ *
+ * A region may have several parts published, and a part may be published
+ * again where KAL_EXEC_PROP_REPUBLISH is set. kal_exec_free releases the whole
+ * region, whichever of its parts were published. The instruction cache is the
+ * program's to maintain, as it is after kal_exec_publish. */
+int kal_exec_publish_part(void* p, kal_uintptr offset, kal_uintptr size);
 
 /* Positions in kal_exec_props. */
 

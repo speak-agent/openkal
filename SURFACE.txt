@@ -100,8 +100,10 @@ kal_task_yield
 # openkal.exec
 kal_exec_alloc
 kal_exec_free
+kal_exec_granularity
 kal_exec_props
 kal_exec_publish
+kal_exec_publish_part
 # openkal.terminal
 kal_terminal_get_mode
 kal_terminal_props
