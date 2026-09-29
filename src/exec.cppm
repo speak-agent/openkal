@@ -24,6 +24,8 @@ export using ::kal_exec_alloc;
 export using ::kal_exec_publish;
 export using ::kal_exec_free;
 export using ::kal_exec_props;
+export using ::kal_exec_granularity;
+export using ::kal_exec_publish_part;
 
 export namespace kal::exec {
 
@@ -48,5 +50,12 @@ inline bool  has(props p) { return properties().has(p); }
 inline void* alloc(kal_uintptr size) { return kal_exec_alloc(size); }
 inline int   publish(void* p, kal_uintptr size) { return kal_exec_publish(p, size); }
 inline void  free(void* p, kal_uintptr size) { kal_exec_free(p, size); }
+
+// The partial form (0.15): part of a region published, the rest left writable,
+// in multiples of granularity() --- what a loader needs.
+inline kal_uintptr granularity() { return kal_exec_granularity(); }
+inline int publish_part(void* p, kal_uintptr offset, kal_uintptr size) {
+    return kal_exec_publish_part(p, offset, size);
+}
 
 }

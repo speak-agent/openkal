@@ -42,8 +42,10 @@ void okc_declarations_c(void)
     (void)sizeof(&kal_env_var_count);
     (void)sizeof(&kal_exec_alloc);
     (void)sizeof(&kal_exec_free);
+    (void)sizeof(&kal_exec_granularity);
     (void)sizeof(&kal_exec_props);
     (void)sizeof(&kal_exec_publish);
+    (void)sizeof(&kal_exec_publish_part);
     (void)sizeof(&kal_exit);
     (void)sizeof(&kal_free);
     (void)sizeof(&kal_fs_capacity);
@@ -66,9 +68,9 @@ void okc_declarations_c(void)
     (void)sizeof(&kal_fs_remove);
     (void)sizeof(&kal_fs_rename);
     (void)sizeof(&kal_fs_seek);
+    (void)sizeof(&kal_fs_set_executable_at);
     (void)sizeof(&kal_fs_set_modified);
     (void)sizeof(&kal_fs_set_modified_at);
-    (void)sizeof(&kal_fs_set_executable_at);
     (void)sizeof(&kal_fs_stream);
     (void)sizeof(&kal_fs_truncate);
     (void)sizeof(&kal_fs_unlock);
@@ -88,12 +90,12 @@ void okc_declarations_c(void)
     (void)sizeof(&kal_process_channel);
     (void)sizeof(&kal_process_channel_close);
     (void)sizeof(&kal_process_close);
+    (void)sizeof(&kal_process_job_close);
+    (void)sizeof(&kal_process_job_enter);
+    (void)sizeof(&kal_process_job_terminate);
     (void)sizeof(&kal_process_props);
     (void)sizeof(&kal_process_spawn);
-    (void)sizeof(&kal_process_job_enter);
     (void)sizeof(&kal_process_stop_requested);
-    (void)sizeof(&kal_process_job_terminate);
-    (void)sizeof(&kal_process_job_close);
     (void)sizeof(&kal_process_terminate);
     (void)sizeof(&kal_process_wait);
     (void)sizeof(&kal_random_fill);

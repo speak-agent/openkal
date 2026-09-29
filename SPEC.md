@@ -1,4 +1,4 @@
-# openkal Specification, version 0.14
+# openkal Specification, version 0.15
 
 ## 1. Scope
 
@@ -50,7 +50,7 @@ provides an interface in whole or not at all.
 | `openkal.timeout` | a bound upon operations that would otherwise wait | optional | ✓ | ✓ | ✓ |
 | `openkal.event` | readiness of a set of resources | reserved | | | |
 
-Version 0.14 specifies the core and optional interfaces. The reserved row is not
+Version 0.15 specifies the core and optional interfaces. The reserved row is not
 specified, and its name shall not be used for other purposes.
 
 The S, L and X columns state which boundaries an interface's declarations can
@@ -1324,3 +1324,26 @@ The following are recorded so that they are not mistaken for oversights.
     declined: one of the three environments governs the classes with a single
     switch, so the finer interface would have required of it a distinction it
     does not have (clause 6.4).
+21. **Loading an object.** **Settled in 0.15.** A loader is above the interface,
+    as `openkal/exec.h` has said since `openkal.exec` was added: parsing a
+    format, relocating and binding names are the same in every environment, so
+    they are written once. What 0.14 did not give a loader is the one thing it
+    cannot do above the interface. An object is linked with its instructions and
+    its data at fixed distances, so both lie in one region, and the
+    instructions become executable while the data stays writable; a region was
+    published whole. `kal_exec_publish_part` publishes part of one, in
+    multiples of `kal_exec_granularity`, the quantum the environment protects
+    in. The loader reads the alignment the object states for its parts and
+    refuses an object aligned more finely than that quantum before it reserves
+    anything.
+
+    **Why the granularity is its own enquiry.** `kal_memory_granularity`
+    reports the coarsest quantum, which on one system is the granularity of
+    allocation and sixteen times the one protection works in. A loader asking
+    that one would refuse every object that system's linker produces.
+
+    **What a loaded object binds to is not settled here.** An object refers to
+    names its program defines --- the C library's, the program's own --- and
+    the program states which names it offers, in the form its object format has
+    for that. That is a matter between a program, its toolchain and its loader,
+    and none of it crosses this interface.
